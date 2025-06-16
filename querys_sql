@@ -1,0 +1,132 @@
+-- buscar todos os clientes
+SELECT * FROM clientes;
+
+-- produtos disponíveis
+SELECT id_produto, nome, preco, estoque
+FROM produtos
+WHERE estoque > 0;
+
+-- vendas de clientes específicos
+SELECT v.id_venda, v.data_venda, v.status, v.total
+FROM vendas v
+JOIN clientes c ON v.id_cliente = c.id_cliente
+WHERE c.id_cliente = 1;
+
+-- inserção de dados
+INSERT INTO clientes (nome, cidade, email, telefone)
+VALUES ('Joãozinho', 'São Paulo', 'joaozinho@email.com', '(11) 94565-1234');
+
+INSERT INTO produtos (nome, descricao, preco, id_categoria, estoque)
+VALUES ('Iphone 15 ProMAX', 'Iphone 15 ProMAX" com 128GB de armazenamento', 2999.99, 1, 100);
+
+INSERT INTO vendas (id_cliente, data_venda, total)
+VALUES (1, '2025-06-15', 4999.97);
+
+INSERT INTO itens_venda (id_venda, id_produto, quantidade, preco_unitario, subtotal)
+VALUES (1, 1, 2, 2999.99, 3999.98);
+
+-- atualização de dados
+
+UPDATE produtos
+SET estoque = estoque - 2
+WHERE id_produto = 1;
+
+UPDATE vendas
+SET status = 'Pago'
+WHERE id_venda = 1;
+
+UPDATE pagamentos
+SET status_pagamento = 'Concluído', valor_pago = 4999.97
+WHERE id_venda = 1;
+
+-- deletando informações
+
+DELETE FROM clientes WHERE id_cliente = 1;
+
+DELETE FROM produtos WHERE id_produto = 1;
+
+-- consultas com agregação e agrupamento
+
+SELECT c.cidade, SUM(v.total) AS total_vendas
+FROM vendas v
+JOIN clientes c ON v.id_cliente = c.id_cliente
+GROUP BY c.cidade;
+
+SELECT iv.id_venda, COUNT(iv.id_produto) AS numero_de_produtos
+FROM itens_venda iv
+GROUP BY iv.id_venda;
+
+SELECT status, COUNT(*) AS total_vendas
+FROM vendas
+GROUP BY status;
+
+-- join
+
+SELECT v.id_venda, v.data_venda, v.status, v.total, c.nome AS nome_cliente, c.cidade
+FROM vendas v
+JOIN clientes c ON v.id_cliente = c.id_cliente;
+
+SELECT v.id_venda, p.nome AS produto_nome, iv.quantidade, iv.preco_unitario
+FROM itens_venda iv
+JOIN vendas v ON iv.id_venda = v.id_venda
+JOIN produtos p ON iv.id_produto = p.id_produto;
+
+SELECT p.nome, SUM(iv.subtotal) AS total_vendas
+FROM itens_venda iv
+JOIN produtos p ON iv.id_produto = p.id_produto
+GROUP BY p.nome;
+
+-- suboconsulta
+
+SELECT nome, cidade
+FROM clientes
+WHERE id_cliente = (
+    SELECT id_cliente
+    FROM vendas
+    ORDER BY total DESC
+    LIMIT 1
+);
+
+SELECT nome
+FROM produtos
+WHERE id_produto = (
+    SELECT id_produto
+    FROM itens_venda
+    GROUP BY id_produto
+    ORDER BY SUM(quantidade) DESC
+    LIMIT 1
+);
+
+-- ordenação de dados e limites
+
+SELECT * FROM vendas
+ORDER BY data_venda DESC
+LIMIT 5;
+
+SELECT nome, preco
+FROM produtos
+ORDER BY preco DESC
+LIMIT 3;
+
+SELECT * FROM vendas
+ORDER BY data_venda DESC
+LIMIT 10;
+
+-- consulta com função de data
+
+SELECT * FROM vendas
+WHERE data_venda >= CURDATE() - INTERVAL 1 MONTH;
+
+SELECT * FROM vendas
+WHERE id_cliente = 1
+AND data_venda >= CURDATE() - INTERVAL 1 YEAR;
+
+-- filtros
+
+SELECT * FROM produtos
+WHERE nome LIKE '%Smartphone%';
+
+SELECT v.id_venda, v.data_venda, v.total
+FROM vendas v
+JOIN clientes c ON v.id_cliente = c.id_cliente
+WHERE c.cidade = 'São Paulo';
